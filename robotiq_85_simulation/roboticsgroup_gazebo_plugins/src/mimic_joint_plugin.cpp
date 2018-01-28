@@ -138,8 +138,13 @@ void MimicJointPlugin::Load(physics::ModelPtr _parent, sdf::ElementPtr _sdf )
   }
   
   // Set max effort
-  if(!has_pid_)
-    mimic_joint_->SetMaxForce(0,max_effort_);
+  if(!has_pid_) {
+#if GAZEBO_MAJOR_VERSION > 2
+    mimic_joint_->SetParam ( "fmax", 0, max_effort_ );
+#else
+    mimic_joint_->SetMaxForce ( 0, max_effort_ );
+#endif
+  }
 
   // Listen to the update event. This event is broadcast every
   // simulation iteration.
@@ -164,8 +169,13 @@ void MimicJointPlugin::UpdateChild()
       double error = angle-a;
       double effort = gazebo::math::clamp(pid_.computeCommand(error, period), -max_effort_, max_effort_);
     }
-    else
+    else {
+#if GAZEBO_MAJOR_VERSION >= 7
+      mimic_joint_->SetPosition(0, angle);
+#else
       mimic_joint_->SetAngle(0, math::Angle(angle));
+#endif
+    }
   }
 }
 
